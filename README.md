@@ -1,9 +1,10 @@
-[![Stability: Maintenance](https://masterminds.github.io/stability/maintenance.svg)](https://masterminds.github.io/stability/maintenance.html)
-### Squirrel is "complete".
-Bug fixes will still be merged (slowly). Bug reports are welcome, but I will not necessarily respond to them. If another fork (or substantially similar project) actively improves on what Squirrel does, let me know and I may link to it here.
-
-
 # Squirrel - fluent SQL generator for Go
+
+This is a fork of github.com/Masterminds/squirrel with references to database/sql replaced with jackc/pgx.
+This migration was done to support our internal usecase where we were migrating from lib/pq to pgx however
+could not use the stdlib compatability layer due to support for copyin in nested transactions in our codebase
+Hence we opted to fork squirrel and support pgx natively to minimize the code changes needed as part of this
+migration.
 
 ```go
 import "github.com/Masterminds/squirrel"

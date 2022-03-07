@@ -47,11 +47,11 @@ func TestRunWithTx(t *testing.T) {
 
 type fakeBaseRunner struct{}
 
-func (fakeBaseRunner) Exec(query string, args ...interface{}) (sql.Result, error) {
+func (fakeBaseRunner) Exec(query string, args ...interface{}) (pgconn.CommandTag, error) {
 	return nil, nil
 }
 
-func (fakeBaseRunner) Query(query string, args ...interface{}) (*sql.Rows, error) {
+func (fakeBaseRunner) Query(query string, args ...interface{}) (pgx.Rows, error) {
 	return nil, nil
 }
 

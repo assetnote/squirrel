@@ -2,13 +2,15 @@ package squirrel
 
 import (
 	"bytes"
-	"database/sql"
+	"context"
 	"errors"
 	"fmt"
 	"io"
 	"sort"
 	"strings"
 
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgx/v4"
 	"github.com/lann/builder"
 )
 
@@ -25,21 +27,21 @@ type insertData struct {
 	Select            *SelectBuilder
 }
 
-func (d *insertData) Exec() (sql.Result, error) {
+func (d *insertData) Exec() (pgconn.CommandTag, error) {
 	if d.RunWith == nil {
 		return nil, RunnerNotSet
 	}
 	return ExecWith(d.RunWith, d)
 }
 
-func (d *insertData) Query() (*sql.Rows, error) {
+func (d *insertData) Query() (pgx.Rows, error) {
 	if d.RunWith == nil {
 		return nil, RunnerNotSet
 	}
 	return QueryWith(d.RunWith, d)
 }
 
-func (d *insertData) QueryRow() RowScanner {
+func (d *insertData) QueryRow() pgx.Row {
 	if d.RunWith == nil {
 		return &Row{err: RunnerNotSet}
 	}
@@ -186,19 +188,19 @@ func (b InsertBuilder) RunWith(runner BaseRunner) InsertBuilder {
 }
 
 // Exec builds and Execs the query with the Runner set by RunWith.
-func (b InsertBuilder) Exec() (sql.Result, error) {
+func (b InsertBuilder) Exec(ctx context.Context) (pgconn.CommandTag, error) {
 	data := builder.GetStruct(b).(insertData)
 	return data.Exec()
 }
 
 // Query builds and Querys the query with the Runner set by RunWith.
-func (b InsertBuilder) Query() (*sql.Rows, error) {
+func (b InsertBuilder) Query() (pgx.Rows, error) {
 	data := builder.GetStruct(b).(insertData)
 	return data.Query()
 }
 
 // QueryRow builds and QueryRows the query with the Runner set by RunWith.
-func (b InsertBuilder) QueryRow() RowScanner {
+func (b InsertBuilder) QueryRow() pgx.Row {
 	data := builder.GetStruct(b).(insertData)
 	return data.QueryRow()
 }

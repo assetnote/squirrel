@@ -1,6 +1,8 @@
 package squirrel
 
-// RowScanner is the interface that wraps the Scan method.
+import "github.com/jackc/pgx/v4"
+
+// pgx.Row is the interface that wraps the Scan method.
 //
 // Scan behaves like database/sql.Row.Scan.
 type RowScanner interface {
@@ -9,14 +11,14 @@ type RowScanner interface {
 
 // Row wraps database/sql.Row to let squirrel return new errors on Scan.
 type Row struct {
-	RowScanner
+	pgx.Row
 	err error
 }
 
-// Scan returns Row.err or calls RowScanner.Scan.
+// Scan returns Row.err or calls pgx.Row.Scan.
 func (r *Row) Scan(dest ...interface{}) error {
 	if r.err != nil {
 		return r.err
 	}
-	return r.RowScanner.Scan(dest...)
+	return r.Row.Scan(dest...)
 }

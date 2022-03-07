@@ -4,12 +4,13 @@ package squirrel
 
 import (
 	"context"
-	"database/sql"
 
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgx/v4"
 	"github.com/lann/builder"
 )
 
-func (d *insertData) ExecContext(ctx context.Context) (sql.Result, error) {
+func (d *insertData) ExecContext(ctx context.Context) (pgconn.CommandTag, error) {
 	if d.RunWith == nil {
 		return nil, RunnerNotSet
 	}
@@ -20,7 +21,7 @@ func (d *insertData) ExecContext(ctx context.Context) (sql.Result, error) {
 	return ExecContextWith(ctx, ctxRunner, d)
 }
 
-func (d *insertData) QueryContext(ctx context.Context) (*sql.Rows, error) {
+func (d *insertData) QueryContext(ctx context.Context) (pgx.Rows, error) {
 	if d.RunWith == nil {
 		return nil, RunnerNotSet
 	}
@@ -31,7 +32,7 @@ func (d *insertData) QueryContext(ctx context.Context) (*sql.Rows, error) {
 	return QueryContextWith(ctx, ctxRunner, d)
 }
 
-func (d *insertData) QueryRowContext(ctx context.Context) RowScanner {
+func (d *insertData) QueryRowContext(ctx context.Context) pgx.Row {
 	if d.RunWith == nil {
 		return &Row{err: RunnerNotSet}
 	}
@@ -46,19 +47,19 @@ func (d *insertData) QueryRowContext(ctx context.Context) RowScanner {
 }
 
 // ExecContext builds and ExecContexts the query with the Runner set by RunWith.
-func (b InsertBuilder) ExecContext(ctx context.Context) (sql.Result, error) {
+func (b InsertBuilder) ExecContext(ctx context.Context) (pgconn.CommandTag, error) {
 	data := builder.GetStruct(b).(insertData)
 	return data.ExecContext(ctx)
 }
 
 // QueryContext builds and QueryContexts the query with the Runner set by RunWith.
-func (b InsertBuilder) QueryContext(ctx context.Context) (*sql.Rows, error) {
+func (b InsertBuilder) QueryContext(ctx context.Context) (pgx.Rows, error) {
 	data := builder.GetStruct(b).(insertData)
 	return data.QueryContext(ctx)
 }
 
 // QueryRowContext builds and QueryRowContexts the query with the Runner set by RunWith.
-func (b InsertBuilder) QueryRowContext(ctx context.Context) RowScanner {
+func (b InsertBuilder) QueryRowContext(ctx context.Context) pgx.Row {
 	data := builder.GetStruct(b).(insertData)
 	return data.QueryRowContext(ctx)
 }

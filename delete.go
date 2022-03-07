@@ -2,10 +2,11 @@ package squirrel
 
 import (
 	"bytes"
-	"database/sql"
 	"fmt"
 	"strings"
 
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgx/v4"
 	"github.com/lann/builder"
 )
 
@@ -21,7 +22,7 @@ type deleteData struct {
 	Suffixes          []Sqlizer
 }
 
-func (d *deleteData) Exec() (sql.Result, error) {
+func (d *deleteData) Exec() (pgconn.CommandTag, error) {
 	if d.RunWith == nil {
 		return nil, RunnerNotSet
 	}
@@ -108,7 +109,7 @@ func (b DeleteBuilder) RunWith(runner BaseRunner) DeleteBuilder {
 }
 
 // Exec builds and Execs the query with the Runner set by RunWith.
-func (b DeleteBuilder) Exec() (sql.Result, error) {
+func (b DeleteBuilder) Exec() (pgconn.CommandTag, error) {
 	data := builder.GetStruct(b).(deleteData)
 	return data.Exec()
 }
@@ -178,12 +179,12 @@ func (b DeleteBuilder) SuffixExpr(expr Sqlizer) DeleteBuilder {
 	return builder.Append(b, "Suffixes", expr).(DeleteBuilder)
 }
 
-func (b DeleteBuilder) Query() (*sql.Rows, error) {
+func (b DeleteBuilder) Query() (pgx.Rows, error) {
 	data := builder.GetStruct(b).(deleteData)
 	return data.Query()
 }
 
-func (d *deleteData) Query() (*sql.Rows, error) {
+func (d *deleteData) Query() (pgx.Rows, error) {
 	if d.RunWith == nil {
 		return nil, RunnerNotSet
 	}

@@ -6,6 +6,9 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgx/v4"
 )
 
 // NoContextSupport is returned if a db doesn't support Context.
@@ -15,21 +18,21 @@ var NoContextSupport = errors.New("DB does not support Context")
 //
 // Exec executes the given query as implemented by database/sql.ExecContext.
 type ExecerContext interface {
-	ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
+	ExecContext(ctx context.Context, query string, args ...interface{}) (pgconn.CommandTag, error)
 }
 
 // QueryerContext is the interface that wraps the QueryContext method.
 //
 // QueryContext executes the given query as implemented by database/sql.QueryContext.
 type QueryerContext interface {
-	QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error)
+	QueryContext(ctx context.Context, query string, args ...interface{}) (pgx.Rows, error)
 }
 
 // QueryRowerContext is the interface that wraps the QueryRowContext method.
 //
 // QueryRowContext executes the given query as implemented by database/sql.QueryRowContext.
 type QueryRowerContext interface {
-	QueryRowContext(ctx context.Context, query string, args ...interface{}) RowScanner
+	QueryRowContext(ctx context.Context, query string, args ...interface{}) pgx.Row
 }
 
 // RunnerContext groups the Runner interface, along with the Context versions of each of
@@ -51,25 +54,25 @@ func WrapStdSqlCtx(stdSqlCtx StdSqlCtx) RunnerContext {
 // versions of those methods, and other types that wrap these methods.
 type StdSqlCtx interface {
 	StdSql
-	QueryContext(context.Context, string, ...interface{}) (*sql.Rows, error)
+	QueryContext(context.Context, string, ...interface{}) (pgx.Rows, error)
 	QueryRowContext(context.Context, string, ...interface{}) *sql.Row
-	ExecContext(context.Context, string, ...interface{}) (sql.Result, error)
+	ExecContext(context.Context, string, ...interface{}) (pgconn.CommandTag, error)
 }
 
 type stdsqlCtxRunner struct {
 	StdSqlCtx
 }
 
-func (r *stdsqlCtxRunner) QueryRow(query string, args ...interface{}) RowScanner {
+func (r *stdsqlCtxRunner) QueryRow(query string, args ...interface{}) pgx.Row {
 	return r.StdSqlCtx.QueryRow(query, args...)
 }
 
-func (r *stdsqlCtxRunner) QueryRowContext(ctx context.Context, query string, args ...interface{}) RowScanner {
+func (r *stdsqlCtxRunner) QueryRowContext(ctx context.Context, query string, args ...interface{}) pgx.Row {
 	return r.StdSqlCtx.QueryRowContext(ctx, query, args...)
 }
 
 // ExecContextWith ExecContexts the SQL returned by s with db.
-func ExecContextWith(ctx context.Context, db ExecerContext, s Sqlizer) (res sql.Result, err error) {
+func ExecContextWith(ctx context.Context, db ExecerContext, s Sqlizer) (res pgconn.CommandTag, err error) {
 	query, args, err := s.ToSql()
 	if err != nil {
 		return
@@ -78,7 +81,7 @@ func ExecContextWith(ctx context.Context, db ExecerContext, s Sqlizer) (res sql.
 }
 
 // QueryContextWith QueryContexts the SQL returned by s with db.
-func QueryContextWith(ctx context.Context, db QueryerContext, s Sqlizer) (rows *sql.Rows, err error) {
+func QueryContextWith(ctx context.Context, db QueryerContext, s Sqlizer) (rows pgx.Rows, err error) {
 	query, args, err := s.ToSql()
 	if err != nil {
 		return
@@ -87,7 +90,7 @@ func QueryContextWith(ctx context.Context, db QueryerContext, s Sqlizer) (rows *
 }
 
 // QueryRowContextWith QueryRowContexts the SQL returned by s with db.
-func QueryRowContextWith(ctx context.Context, db QueryRowerContext, s Sqlizer) RowScanner {
+func QueryRowContextWith(ctx context.Context, db QueryRowerContext, s Sqlizer) pgx.Row {
 	query, args, err := s.ToSql()
-	return &Row{RowScanner: db.QueryRowContext(ctx, query, args...), err: err}
+	return &Row{Row: db.QueryRowContext(ctx, query, args...), err: err}
 }

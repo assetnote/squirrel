@@ -2,11 +2,13 @@ package squirrel
 
 import (
 	"bytes"
-	"database/sql"
+	"context"
 	"fmt"
 	"sort"
 	"strings"
 
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgx/v4"
 	"github.com/lann/builder"
 )
 
@@ -28,21 +30,21 @@ type setClause struct {
 	value  interface{}
 }
 
-func (d *updateData) Exec() (sql.Result, error) {
+func (d *updateData) Exec() (pgconn.CommandTag, error) {
 	if d.RunWith == nil {
 		return nil, RunnerNotSet
 	}
 	return ExecWith(d.RunWith, d)
 }
 
-func (d *updateData) Query() (*sql.Rows, error) {
+func (d *updateData) Query() (pgx.Rows, error) {
 	if d.RunWith == nil {
 		return nil, RunnerNotSet
 	}
 	return QueryWith(d.RunWith, d)
 }
 
-func (d *updateData) QueryRow() RowScanner {
+func (d *updateData) QueryRow() pgx.Row {
 	if d.RunWith == nil {
 		return &Row{err: RunnerNotSet}
 	}
@@ -160,17 +162,17 @@ func (b UpdateBuilder) RunWith(runner BaseRunner) UpdateBuilder {
 }
 
 // Exec builds and Execs the query with the Runner set by RunWith.
-func (b UpdateBuilder) Exec() (sql.Result, error) {
+func (b UpdateBuilder) Exec(ctx context.Context) (pgconn.CommandTag, error) {
 	data := builder.GetStruct(b).(updateData)
 	return data.Exec()
 }
 
-func (b UpdateBuilder) Query() (*sql.Rows, error) {
+func (b UpdateBuilder) Query() (pgx.Rows, error) {
 	data := builder.GetStruct(b).(updateData)
 	return data.Query()
 }
 
-func (b UpdateBuilder) QueryRow() RowScanner {
+func (b UpdateBuilder) QueryRow() pgx.Row {
 	data := builder.GetStruct(b).(updateData)
 	return data.QueryRow()
 }

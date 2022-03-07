@@ -2,10 +2,11 @@ package squirrel
 
 import (
 	"bytes"
-	"database/sql"
 	"fmt"
 	"strings"
 
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgx/v4"
 	"github.com/lann/builder"
 )
 
@@ -26,21 +27,21 @@ type selectData struct {
 	Suffixes          []Sqlizer
 }
 
-func (d *selectData) Exec() (sql.Result, error) {
+func (d *selectData) Exec() (pgconn.CommandTag, error) {
 	if d.RunWith == nil {
 		return nil, RunnerNotSet
 	}
 	return ExecWith(d.RunWith, d)
 }
 
-func (d *selectData) Query() (*sql.Rows, error) {
+func (d *selectData) Query() (pgx.Rows, error) {
 	if d.RunWith == nil {
 		return nil, RunnerNotSet
 	}
 	return QueryWith(d.RunWith, d)
 }
 
-func (d *selectData) QueryRow() RowScanner {
+func (d *selectData) QueryRow() pgx.Row {
 	if d.RunWith == nil {
 		return &Row{err: RunnerNotSet}
 	}
@@ -188,19 +189,19 @@ func (b SelectBuilder) RunWith(runner BaseRunner) SelectBuilder {
 }
 
 // Exec builds and Execs the query with the Runner set by RunWith.
-func (b SelectBuilder) Exec() (sql.Result, error) {
+func (b SelectBuilder) Exec() (pgconn.CommandTag, error) {
 	data := builder.GetStruct(b).(selectData)
 	return data.Exec()
 }
 
 // Query builds and Querys the query with the Runner set by RunWith.
-func (b SelectBuilder) Query() (*sql.Rows, error) {
+func (b SelectBuilder) Query() (pgx.Rows, error) {
 	data := builder.GetStruct(b).(selectData)
 	return data.Query()
 }
 
 // QueryRow builds and QueryRows the query with the Runner set by RunWith.
-func (b SelectBuilder) QueryRow() RowScanner {
+func (b SelectBuilder) QueryRow() pgx.Row {
 	data := builder.GetStruct(b).(selectData)
 	return data.QueryRow()
 }

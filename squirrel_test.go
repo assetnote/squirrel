@@ -1,11 +1,12 @@
 package squirrel
 
 import (
-	"database/sql"
 	"fmt"
 	"strings"
 	"testing"
 
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgx/v4"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -27,28 +28,28 @@ type DBStub struct {
 
 var StubError = fmt.Errorf("this is a stub; this is only a stub")
 
-func (s *DBStub) Prepare(query string) (*sql.Stmt, error) {
+func (s *DBStub) Prepare(query string) (*pgconn.StatementDescription, error) {
 	s.LastPrepareSql = query
 	s.PrepareCount++
 	return nil, nil
 }
 
-func (s *DBStub) Exec(query string, args ...interface{}) (sql.Result, error) {
+func (s *DBStub) Exec(query string, args ...interface{}) (pgconn.CommandTag, error) {
 	s.LastExecSql = query
 	s.LastExecArgs = args
 	return nil, nil
 }
 
-func (s *DBStub) Query(query string, args ...interface{}) (*sql.Rows, error) {
+func (s *DBStub) Query(query string, args ...interface{}) (pgx.Rows, error) {
 	s.LastQuerySql = query
 	s.LastQueryArgs = args
 	return nil, nil
 }
 
-func (s *DBStub) QueryRow(query string, args ...interface{}) RowScanner {
+func (s *DBStub) QueryRow(query string, args ...interface{}) pgx.Row {
 	s.LastQueryRowSql = query
 	s.LastQueryRowArgs = args
-	return &Row{RowScanner: &RowStub{}}
+	return &Row{Row: &RowStub{}}
 }
 
 var sqlizer = Select("test")

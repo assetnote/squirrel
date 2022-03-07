@@ -4,7 +4,6 @@ package squirrel
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 
 	"github.com/jackc/pgconn"
@@ -50,12 +49,12 @@ func WrapStdSqlCtx(stdSqlCtx StdSqlCtx) RunnerContext {
 	return &stdsqlCtxRunner{stdSqlCtx}
 }
 
-// StdSqlCtx encompasses the standard methods of the *sql.DB type, along with the Context
+// StdSqlCtx encompasses the standard methods of the pgx.Tx type, along with the Context
 // versions of those methods, and other types that wrap these methods.
 type StdSqlCtx interface {
 	StdSql
 	QueryContext(context.Context, string, ...interface{}) (pgx.Rows, error)
-	QueryRowContext(context.Context, string, ...interface{}) *sql.Row
+	QueryRowContext(context.Context, string, ...interface{}) pgx.Row
 	ExecContext(context.Context, string, ...interface{}) (pgconn.CommandTag, error)
 }
 
@@ -63,8 +62,8 @@ type stdsqlCtxRunner struct {
 	StdSqlCtx
 }
 
-func (r *stdsqlCtxRunner) QueryRow(query string, args ...interface{}) pgx.Row {
-	return r.StdSqlCtx.QueryRow(query, args...)
+func (r *stdsqlCtxRunner) QueryRow(ctx context.Context, query string, args ...interface{}) pgx.Row {
+	return r.StdSqlCtx.QueryRow(context.Background(), query, args...)
 }
 
 func (r *stdsqlCtxRunner) QueryRowContext(ctx context.Context, query string, args ...interface{}) pgx.Row {

@@ -1,9 +1,11 @@
 package squirrel
 
 import (
-	"database/sql"
+	"context"
 	"testing"
 
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgx/v4"
 	"github.com/lann/builder"
 	"github.com/stretchr/testify/assert"
 )
@@ -25,18 +27,19 @@ func TestStatementBuilderPlaceholderFormat(t *testing.T) {
 }
 
 func TestRunWithDB(t *testing.T) {
-	db := &sql.DB{}
+	db := &pgx.Conn{}
 	assert.NotPanics(t, func() {
 		builder.GetStruct(Select().RunWith(db))
 		builder.GetStruct(Insert("t").RunWith(db))
 		builder.GetStruct(Update("t").RunWith(db))
 		builder.GetStruct(Delete("t").RunWith(db))
-	}, "RunWith(*sql.DB) should not panic")
+	}, "RunWith(pgx.Tx) should not panic")
 
 }
 
 func TestRunWithTx(t *testing.T) {
-	tx := &sql.Tx{}
+	t.Skip("unable to implement tx since our iface uses tx")
+	tx := &pgx.Conn{}
 	assert.NotPanics(t, func() {
 		builder.GetStruct(Select().RunWith(tx))
 		builder.GetStruct(Insert("t").RunWith(tx))
@@ -47,11 +50,11 @@ func TestRunWithTx(t *testing.T) {
 
 type fakeBaseRunner struct{}
 
-func (fakeBaseRunner) Exec(query string, args ...interface{}) (pgconn.CommandTag, error) {
+func (fakeBaseRunner) Exec(ctx context.Context, query string, args ...interface{}) (pgconn.CommandTag, error) {
 	return nil, nil
 }
 
-func (fakeBaseRunner) Query(query string, args ...interface{}) (pgx.Rows, error) {
+func (fakeBaseRunner) Query(ctx context.Context, query string, args ...interface{}) (pgx.Rows, error) {
 	return nil, nil
 }
 

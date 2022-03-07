@@ -1,6 +1,7 @@
 package squirrel
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -72,13 +73,13 @@ func TestUpdateBuilderRunners(t *testing.T) {
 
 	expectedSql := "UPDATE test SET x = ?"
 
-	b.Exec()
+	b.Exec(context.Background())
 	assert.Equal(t, expectedSql, db.LastExecSql)
 }
 
 func TestUpdateBuilderNoRunner(t *testing.T) {
 	b := Update("test").Set("x", 1)
 
-	_, err := b.Exec()
+	_, err := b.Exec(context.Background())
 	assert.Equal(t, RunnerNotSet, err)
 }

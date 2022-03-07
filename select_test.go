@@ -1,12 +1,13 @@
 package squirrel
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
 	"log"
 	"testing"
 	"time"
 
+	"github.com/jackc/pgx/v4"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -363,7 +364,7 @@ func ExampleSelectBuilder_Columns_order() {
 
 func ExampleSelectBuilder_Scan() {
 
-	var db *sql.DB
+	var db pgx.Tx
 
 	query := Select("id", "created", "first_name").From("users")
 	query = query.RunWith(db)
@@ -380,7 +381,7 @@ func ExampleSelectBuilder_Scan() {
 
 func ExampleSelectBuilder_ScanContext() {
 
-	var db *sql.DB
+	var db pgx.Tx
 
 	query := Select("id", "created", "first_name").From("users")
 	query = query.RunWith(db)
@@ -397,7 +398,7 @@ func ExampleSelectBuilder_ScanContext() {
 
 func ExampleSelectBuilder_RunWith() {
 
-	var db *sql.DB
+	var db pgx.Tx
 
 	query := Select("id", "created", "first_name").From("users").RunWith(db)
 
@@ -413,7 +414,7 @@ func ExampleSelectBuilder_RunWith() {
 
 func ExampleSelectBuilder_ToSql() {
 
-	var db *sql.DB
+	var db pgx.Tx
 
 	query := Select("id", "created", "first_name").From("users")
 
@@ -423,7 +424,7 @@ func ExampleSelectBuilder_ToSql() {
 		return
 	}
 
-	rows, err := db.Query(sql, args...)
+	rows, err := db.Query(context.Background(), sql, args...)
 	if err != nil {
 		log.Println(err)
 		return

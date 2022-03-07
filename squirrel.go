@@ -5,6 +5,7 @@ package squirrel
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"strings"
 
@@ -31,21 +32,21 @@ type rawSqlizer interface {
 //
 // Exec executes the given query as implemented by database/sql.Exec.
 type Execer interface {
-	Exec(sql string, arguments ...interface{}) (commandTag pgconn.CommandTag, err error)
+	Exec(ctx context.Context, sql string, arguments ...interface{}) (commandTag pgconn.CommandTag, err error)
 }
 
 // Queryer is the interface that wraps the Query method.
 //
 // Query executes the given query as implemented by database/sql.Query.
 type Queryer interface {
-	Query(sql string, args ...interface{}) (pgx.Rows, error)
+	Query(ctx context.Context, sql string, args ...interface{}) (pgx.Rows, error)
 }
 
 // QueryRower is the interface that wraps the QueryRow method.
 //
 // QueryRow executes the given query as implemented by database/sql.QueryRow.
 type QueryRower interface {
-	QueryRow(query string, args ...interface{}) pgx.Row
+	QueryRow(ctx context.Context, query string, args ...interface{}) pgx.Row
 }
 
 // BaseRunner groups the Execer and Queryer interfaces.
@@ -67,20 +68,20 @@ func WrapStdSql(stdSql StdSql) Runner {
 	return &stdsqlRunner{stdSql}
 }
 
-// StdPgxSql encompasses the standard methods of the *sql.DB type, and other types that
+// StdPgxSql encompasses the standard methods of the pgx.Tx type, and other types that
 // wrap these methods.
 type StdSql interface {
-	Exec(sql string, arguments ...interface{}) (commandTag pgconn.CommandTag, err error)
-	Query(sql string, args ...interface{}) (pgx.Rows, error)
-	QueryRow(sql string, args ...interface{}) pgx.Row
+	Exec(ctx context.Context, sql string, arguments ...interface{}) (commandTag pgconn.CommandTag, err error)
+	Query(ctx context.Context, sql string, args ...interface{}) (pgx.Rows, error)
+	QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row
 }
 
 type stdsqlRunner struct {
 	StdSql
 }
 
-func (r *stdsqlRunner) QueryRow(query string, args ...interface{}) pgx.Row {
-	return r.StdSql.QueryRow(query, args...)
+func (r *stdsqlRunner) QueryRow(ctx context.Context, query string, args ...interface{}) pgx.Row {
+	return r.StdSql.QueryRow(ctx, query, args...)
 }
 
 func setRunWith(b interface{}, runner BaseRunner) interface{} {
@@ -105,7 +106,7 @@ func ExecWith(db Execer, s Sqlizer) (commandTag pgconn.CommandTag, err error) {
 	if err != nil {
 		return
 	}
-	return db.Exec(query, args...)
+	return db.Exec(context.Background(), query, args...)
 }
 
 // QueryWith Querys the SQL returned by s with db.
@@ -114,13 +115,13 @@ func QueryWith(db Queryer, s Sqlizer) (rows pgx.Rows, err error) {
 	if err != nil {
 		return
 	}
-	return db.Query(query, args...)
+	return db.Query(context.Background(), query, args...)
 }
 
 // QueryRowWith QueryRows the SQL returned by s with db.
 func QueryRowWith(db QueryRower, s Sqlizer) pgx.Row {
 	query, args, err := s.ToSql()
-	return &Row{Row: db.QueryRow(query, args...), err: err}
+	return &Row{Row: db.QueryRow(context.Background(), query, args...), err: err}
 }
 
 // DebugSqlizer calls ToSql on s and shows the approximate SQL to be executed

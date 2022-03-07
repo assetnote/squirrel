@@ -1,6 +1,7 @@
 package squirrel
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"testing"
@@ -26,27 +27,29 @@ type DBStub struct {
 	LastQueryRowArgs []interface{}
 }
 
+var _ StdSqlCtx = &DBStub{}
+
 var StubError = fmt.Errorf("this is a stub; this is only a stub")
 
-func (s *DBStub) Prepare(query string) (*pgconn.StatementDescription, error) {
+func (s *DBStub) Prepare(ctx context.Context, query string) (*pgconn.StatementDescription, error) {
 	s.LastPrepareSql = query
 	s.PrepareCount++
 	return nil, nil
 }
 
-func (s *DBStub) Exec(query string, args ...interface{}) (pgconn.CommandTag, error) {
+func (s *DBStub) Exec(ctx context.Context, query string, args ...interface{}) (pgconn.CommandTag, error) {
 	s.LastExecSql = query
 	s.LastExecArgs = args
 	return nil, nil
 }
 
-func (s *DBStub) Query(query string, args ...interface{}) (pgx.Rows, error) {
+func (s *DBStub) Query(ctx context.Context, query string, args ...interface{}) (pgx.Rows, error) {
 	s.LastQuerySql = query
 	s.LastQueryArgs = args
 	return nil, nil
 }
 
-func (s *DBStub) QueryRow(query string, args ...interface{}) pgx.Row {
+func (s *DBStub) QueryRow(ctx context.Context, query string, args ...interface{}) pgx.Row {
 	s.LastQueryRowSql = query
 	s.LastQueryRowArgs = args
 	return &Row{Row: &RowStub{}}

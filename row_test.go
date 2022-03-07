@@ -18,7 +18,7 @@ func (r *RowStub) Scan(_ ...interface{}) error {
 
 func TestRowScan(t *testing.T) {
 	stub := &RowStub{}
-	row := &Row{pgx.Row: stub}
+	row := &Row{Row: stub}
 	err := row.Scan()
 	assert.True(t, stub.Scanned, "row was not scanned")
 	assert.NoError(t, err)
@@ -27,7 +27,7 @@ func TestRowScan(t *testing.T) {
 func TestRowScanErr(t *testing.T) {
 	stub := &RowStub{}
 	rowErr := fmt.Errorf("scan err")
-	row := &Row{pgx.Row: stub, err: rowErr}
+	row := &Row{Row: stub, err: rowErr}
 	err := row.Scan()
 	assert.False(t, stub.Scanned, "row was scanned")
 	assert.Equal(t, rowErr, err)

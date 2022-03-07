@@ -2,7 +2,6 @@ package squirrel
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -188,7 +187,7 @@ func (b InsertBuilder) RunWith(runner BaseRunner) InsertBuilder {
 }
 
 // Exec builds and Execs the query with the Runner set by RunWith.
-func (b InsertBuilder) Exec(ctx context.Context) (pgconn.CommandTag, error) {
+func (b InsertBuilder) Exec() (pgconn.CommandTag, error) {
 	data := builder.GetStruct(b).(insertData)
 	return data.Exec()
 }

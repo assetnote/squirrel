@@ -14,7 +14,7 @@ func (d *insertData) ExecContext(ctx context.Context) (pgconn.CommandTag, error)
 	if d.RunWith == nil {
 		return nil, RunnerNotSet
 	}
-	ctxRunner, ok := d.RunWith.(ExecerContext)
+	ctxRunner, ok := d.RunWith.(Execer)
 	if !ok {
 		return nil, NoContextSupport
 	}
@@ -25,7 +25,7 @@ func (d *insertData) QueryContext(ctx context.Context) (pgx.Rows, error) {
 	if d.RunWith == nil {
 		return nil, RunnerNotSet
 	}
-	ctxRunner, ok := d.RunWith.(QueryerContext)
+	ctxRunner, ok := d.RunWith.(Queryer)
 	if !ok {
 		return nil, NoContextSupport
 	}
@@ -36,9 +36,9 @@ func (d *insertData) QueryRowContext(ctx context.Context) pgx.Row {
 	if d.RunWith == nil {
 		return &Row{err: RunnerNotSet}
 	}
-	queryRower, ok := d.RunWith.(QueryRowerContext)
+	queryRower, ok := d.RunWith.(QueryRower)
 	if !ok {
-		if _, ok := d.RunWith.(QueryerContext); !ok {
+		if _, ok := d.RunWith.(Queryer); !ok {
 			return &Row{err: RunnerNotQueryRunner}
 		}
 		return &Row{err: NoContextSupport}

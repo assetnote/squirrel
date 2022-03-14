@@ -86,8 +86,6 @@ func (r *stdsqlRunner) QueryRow(ctx context.Context, query string, args ...inter
 
 func setRunWith(b interface{}, runner BaseRunner) interface{} {
 	switch r := runner.(type) {
-	case StdSqlCtx:
-		runner = WrapStdSqlCtx(r)
 	case StdSql:
 		runner = WrapStdSql(r)
 	}

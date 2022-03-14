@@ -27,7 +27,7 @@ type DBStub struct {
 	LastQueryRowArgs []interface{}
 }
 
-var _ StdSqlCtx = &DBStub{}
+var _ StdSql = &DBStub{}
 
 var StubError = fmt.Errorf("this is a stub; this is only a stub")
 

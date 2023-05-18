@@ -60,6 +60,30 @@ func TestSelectBuilderToSql(t *testing.T) {
 	assert.Equal(t, expectedArgs, args)
 }
 
+func TestOneCTE(t *testing.T) {
+	sql, _, err := Select("*").From("cte").With("cte", Select("abc").From("def")).ToSql()
+
+	assert.NoError(t, err)
+
+	assert.Equal(t, "WITH cte AS (SELECT abc FROM def) SELECT * FROM cte", sql)
+}
+
+func TestTwoCTEs(t *testing.T) {
+	sql, _, err := Select("*").From("cte").With("cte", Select("abc").From("def")).With("cte2", Select("ghi").From("jkl")).ToSql()
+
+	assert.NoError(t, err)
+
+	assert.Equal(t, "WITH cte AS (SELECT abc FROM def), cte2 AS (SELECT ghi FROM jkl) SELECT * FROM cte", sql)
+}
+
+func TestCTEErrorBubblesUp(t *testing.T) {
+
+	// a SELECT with no columns raises an error
+	_, _, err := Select("*").From("cte").With("cte", SelectBuilder{}.From("def")).ToSql()
+
+	assert.Error(t, err)
+}
+
 func TestSelectBuilderFromSelect(t *testing.T) {
 	subQ := Select("c").From("d").Where(Eq{"i": 0})
 	b := Select("a", "b").FromSelect(subQ, "subq")
